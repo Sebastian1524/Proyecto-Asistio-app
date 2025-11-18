@@ -1,0 +1,45 @@
+# Dependencias
+node_modules/
+**/node_modules/
+
+# Variables de entorno (NO subir contraseñas/credenciales)
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Carpetas de build/dist
+dist/
+build/
+
+# Expo (React Native)
+.expo/
+.expo-shared/
+
+# Android
+android/app/build/
+android/.gradle/
+
+# iOS
+ios/Pods/
+ios/build/
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Archivos de base de datos locales (opcional)
+*.sqlite
+*.db

@@ -48,7 +48,10 @@ export default function PantallaClases({ navigation }) {
   const renderClase = ({ item }) => (
     <TouchableOpacity
       style={styles.tarjetaClase}
-      onPress={() => navigation.navigate('DetalleClase', { idClase: item.id_clase })}
+      onPress={() => navigation.navigate('Eventos', { 
+        idClase: item.id_clase,
+        nombreClase: item.nombre_clase 
+      })}
     >
       <View style={styles.headerClase}>
         <Text style={styles.nombreClase}>{item.nombre_clase}</Text>

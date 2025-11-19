@@ -19,7 +19,8 @@ export async function login(email, password) {
     }
     console.log('[authService] response', res.status, data);
     if (!res.ok) throw new Error(data.message || `Error en login (status ${res.status})`);
-    return data; // contiene token y usuario según backend
+    // El backend responde con { success, data: { token, usuario } }
+    return data.data || data; // Extraer data.data si existe, sino devolver data completo
   } catch (err) {
     console.error('[authService] error', err.message || err);
     throw err;

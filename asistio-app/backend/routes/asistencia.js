@@ -6,6 +6,9 @@ const { verificarToken, verificarRol } = require('../middleware/auth');
 // Todas las rutas de asistencia requieren autenticación
 router.use(verificarToken);
 
+// Obtener todos los eventos del usuario
+router.get('/eventos', asistenciaController.obtenerEventos);
+
 // Eventos: crear evento con QR
 router.post('/eventos', asistenciaController.crearEventoConQR);
 

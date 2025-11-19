@@ -24,6 +24,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useAnimacion } from '../contexto/AnimacionContext';
+import { useAuth } from '../contexto/AuthContext';
+import { login as loginAPI } from '../services/authService';
 
 import Aura from '../../assets/imagenes/2_pantalla_login/aura';
 import Circulocontenedor from '../../assets/imagenes/2_pantalla_login/circulo_contenedor';
@@ -45,12 +47,15 @@ const TITULO_TOP_BIENVENIDA = -height * 0.05;
 
 export default function PantallaLogin({ navigation }) {
   const { posicionTitulo } = useAnimacion();
+  const { login: guardarLogin } = useAuth();
   const titleWrapperStatic = { position: 'absolute', top: 0, left: 0, right: 0, alignItems: 'center' };
 
   /* estado de form con los hooks */
   const correo = useInput('email', '');
   const password = useInput('password', '');
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [errorLogin, setErrorLogin] = useState('');
+  const [cargandoLogin, setCargandoLogin] = useState(false);
 
   /* Estado para controlar la visibilidad del teclado */
   const [tecladoVisible, setTecladoVisible] = useState(false);
@@ -273,19 +278,34 @@ export default function PantallaLogin({ navigation }) {
     }, 600);
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!formularioEsValido) return;
     
-    formOpacity.value = withTiming(0, { duration: 300 });
+    setCargandoLogin(true);
+    setErrorLogin('');
 
-    console.log('Login con:', {
-      email: correo.valor,
-      password: password.valor
-    });
-
-    setTimeout(() => {
-      navigation.replace("PantallaActivacionCuenta");
-    }, 350);
+    try {
+      // Llamar al backend
+      const respuesta = await loginAPI(correo.valor, password.valor);
+      
+      // Guardar token y usuario
+      await guardarLogin(respuesta);
+      
+      // Animar salida
+      formOpacity.value = withTiming(0, { duration: 300 });
+      
+      console.log('Login exitoso:', respuesta.usuario);
+      
+      // Navegar a Home
+      setTimeout(() => {
+        navigation.replace("Home"); // Cambiaremos esto cuando creemos la pantalla Home
+      }, 350);
+      
+    } catch (error) {
+      setCargandoLogin(false);
+      setErrorLogin(error.message || 'Error al iniciar sesión');
+      console.error('Error login:', error);
+    }
   };
 
   /* estilos animados */
@@ -479,6 +499,11 @@ export default function PantallaLogin({ navigation }) {
               onTogglePassword={() => setMostrarPassword(!mostrarPassword)}
             />
 
+            {/* MENSAJE DE ERROR */}
+            {errorLogin ? (
+              <Text style={estilos.mensajeError}>{errorLogin}</Text>
+            ) : null}
+
             {/* BOTÓN RECUPERAR CONTRASEÑA Y LOGIN */}
             <TouchableOpacity
               onPress={() => {/* recuperar contraseña */}} 
@@ -490,19 +515,19 @@ export default function PantallaLogin({ navigation }) {
             {/* BOTÓN LOGIN - CORREGIDO */}
             <AnimatedTouchable
               onPress={handleLogin}
-              disabled={!formularioEsValido}
+              disabled={!formularioEsValido || cargandoLogin}
               style={[
                 estilos.boton,
                 estiloBoton,
-                { backgroundColor: formularioEsValido ? '#4A90E2' : '#DCE9FB' },
+                { backgroundColor: (formularioEsValido && !cargandoLogin) ? '#4A90E2' : '#DCE9FB' },
               ]}
               activeOpacity={0.85}
             >
               <Text style={[
                 estilos.textoBoton, 
-                { color: formularioEsValido ? '#FFFFFF' : '#8AA7D9' }
+                { color: (formularioEsValido && !cargandoLogin) ? '#FFFFFF' : '#8AA7D9' }
               ]}>
-                Iniciar sesión
+                {cargandoLogin ? 'Iniciando sesión...' : 'Iniciar sesión'}
               </Text>
             </AnimatedTouchable>
           </Animated.View>
@@ -613,6 +638,16 @@ const estilos = StyleSheet.create({
     color: '#2563EB',
     fontSize: width * 0.034,
     marginTop: height * 0.02
+  },
+
+  mensajeError: {
+    color: '#DC2626',
+    fontSize: width * 0.035,
+    marginTop: height * 0.015,
+    textAlign: 'center',
+    backgroundColor: '#FEE2E2',
+    padding: height * 0.01,
+    borderRadius: 8,
   },
 
   boton: {

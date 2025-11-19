@@ -30,6 +30,52 @@ const normalizarHora = (hora) => {
 // ============================================
 // Crear nuevo evento y generar QR
 // ============================================
+const obtenerEventos = async (req, res) => {
+  try {
+    const { id_usuario, rol, id_institucion } = req.usuario;
+
+    let eventos;
+    
+    if (rol === 'docente' || rol === 'administrador') {
+      // Docentes ven todos los eventos de su institución
+      eventos = await query(
+        `SELECT e.*, c.nombre_clase, c.id_institucion
+         FROM evento_clase e
+         INNER JOIN clase c ON e.id_clase = c.id_clase
+         WHERE c.id_institucion = $1
+         ORDER BY e.fecha_evento DESC, e.hora_inicio DESC`,
+        [id_institucion]
+      );
+    } else {
+      // Estudiantes solo ven eventos de sus clases
+      eventos = await query(
+        `SELECT e.*, c.nombre_clase, c.id_institucion
+         FROM evento_clase e
+         INNER JOIN clase c ON e.id_clase = c.id_clase
+         INNER JOIN clase_estudiante ce ON c.id_clase = ce.id_clase
+         WHERE ce.id_usuario = $1
+         ORDER BY e.fecha_evento DESC, e.hora_inicio DESC`,
+        [id_usuario]
+      );
+    }
+
+    res.json({
+      success: true,
+      data: eventos.rows
+    });
+
+  } catch (error) {
+    console.error('Error al obtener eventos:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener eventos'
+    });
+  }
+};
+
+// ============================================
+// Crear nuevo evento y generar QR
+// ============================================
 const crearEventoConQR = async (req, res) => {
   try {
     let { id_clase, nombre_evento, descripcion, fecha_evento, hora_inicio, hora_fin } = req.body;
@@ -464,6 +510,7 @@ const actualizarReporteAsistencia = async (id_clase, id_usuario) => {
 };
 
 module.exports = {
+  obtenerEventos,
   crearEventoConQR,
   obtenerQR,
   registrarAsistenciaQR,

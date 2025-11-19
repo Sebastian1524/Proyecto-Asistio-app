@@ -24,4 +24,10 @@ router.delete('/:id', clasesController.eliminarClase);
 // Obtener estudiantes
 router.get('/:id/estudiantes', clasesController.obtenerEstudiantes);
 
+// Inscribir estudiante en una clase
+router.post('/:id/inscribir', clasesController.inscribirEstudiante);
+
+// Desinscribir estudiante de una clase
+router.post('/:id/desinscribir', clasesController.desinscribirEstudiante);
+
 module.exports = router;

@@ -18,6 +18,9 @@ import PantallaCrearClase from './src/pantallas/PantallaCrearClase';
 import PantallaCrearEvento from './src/pantallas/PantallaCrearEvento';
 import PantallaAsistenciasEvento from './src/pantallas/PantallaAsistenciasEvento';
 import PantallaReportes from './src/pantallas/PantallaReportes';
+import PantallaGestionEstudiantes from './src/pantallas/PantallaGestionEstudiantes';
+import PantallaDashboardClase from './src/pantallas/PantallaDashboardClase';
+import PantallaDashboardEstudiante from './src/pantallas/PantallaDashboardEstudiante';
 
 const Stack = createNativeStackNavigator(); //Crea el navegador de pantallas
 
@@ -116,6 +119,27 @@ export default function App() {
             <Stack.Screen 
               name="Reportes" 
               component={PantallaReportes}
+              options={{ 
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen 
+              name="GestionEstudiantes" 
+              component={PantallaGestionEstudiantes}
+              options={{ 
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen 
+              name="DashboardClase" 
+              component={PantallaDashboardClase}
+              options={{ 
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen 
+              name="DashboardEstudiante" 
+              component={PantallaDashboardEstudiante}
               options={{ 
                 animation: 'slide_from_right',
               }}

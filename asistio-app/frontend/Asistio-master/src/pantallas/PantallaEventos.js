@@ -110,7 +110,8 @@ export default function PantallaEventos({ navigation }) {
         </View>
 
         <View style={styles.botonesContainer}>
-          {esActivo && item.codigo_qr && (
+          {/* Solo DOCENTES y ADMINS pueden ver el QR */}
+          {esActivo && item.codigo_qr && (usuario?.rol === 'docente' || usuario?.rol === 'administrador') && (
             <TouchableOpacity
               style={styles.botonVerQR}
               onPress={() => mostrarQR(item)}
@@ -119,17 +120,18 @@ export default function PantallaEventos({ navigation }) {
             </TouchableOpacity>
           )}
 
-          {(usuario?.rol === 'docente' || usuario?.rol === 'administrador') && (
-            <TouchableOpacity
-              style={styles.botonAsistencias}
-              onPress={() => navigation.navigate('AsistenciasEvento', {
-                idEvento: item.id_evento,
-                nombreEvento: item.nombre_evento
-              })}
-            >
-              <Text style={styles.botonAsistenciasTexto}>👥 Asistencias</Text>
-            </TouchableOpacity>
-          )}
+          {/* Botón de Asistencias - todos pueden ver */}
+          <TouchableOpacity
+            style={styles.botonAsistencias}
+            onPress={() => navigation.navigate('AsistenciasEvento', {
+              idEvento: item.id_evento,
+              nombreEvento: item.nombre_evento
+            })}
+          >
+            <Text style={styles.botonAsistenciasTexto}>
+              {usuario?.rol === 'estudiante' ? '📊 Mi Asistencia' : '👥 Asistencias'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -154,7 +156,7 @@ export default function PantallaEventos({ navigation }) {
           </Text>
         </View>
         
-        {usuario?.rol === 'docente' && (
+        {(usuario?.rol === 'docente' || usuario?.rol === 'administrador') && (
           <TouchableOpacity
             style={styles.botonCrear}
             onPress={() => navigation.navigate('CrearEvento')}

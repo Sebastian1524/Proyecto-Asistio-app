@@ -3,7 +3,12 @@ require('dotenv').config();
 
 // Middleware para verificar token JWT
 const verificarToken = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+  // Intentar obtener el token del header o del query parameter
+  let token = req.header('Authorization')?.replace('Bearer ', '');
+  
+  if (!token && req.query.token) {
+    token = req.query.token;
+  }
 
   if (!token) {
     return res.status(401).json({

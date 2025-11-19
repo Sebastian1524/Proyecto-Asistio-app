@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
-  Dimensions
+  Dimensions,
+  Alert
 } from 'react-native';
 import { useAuth } from '../contexto/AuthContext';
 import { obtenerClases } from '../services/clasesService';
+import { descargarReporteClase, descargarReporteEstudiantes } from '../services/reportesService';
 
 const { width } = Dimensions.get('window');
 
@@ -45,44 +47,124 @@ export default function PantallaClases({ navigation }) {
     cargarClases();
   };
 
+  const handleExportarReportes = (clase) => {
+    Alert.alert(
+      '📊 Exportar Reportes',
+      `¿Qué reporte deseas exportar de ${clase.nombre_clase}?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: '📋 Asistencias completas',
+          onPress: async () => {
+            try {
+              const resultado = await descargarReporteClase(clase.id_clase, clase.nombre_clase);
+              if (resultado.success) {
+                Alert.alert('✅ Éxito', 'Reporte descargado correctamente');
+              }
+            } catch (error) {
+              Alert.alert('❌ Error', error.message || 'No se pudo descargar el reporte');
+            }
+          }
+        },
+        {
+          text: '📊 Estadísticas por estudiante',
+          onPress: async () => {
+            try {
+              const resultado = await descargarReporteEstudiantes(clase.id_clase, clase.nombre_clase);
+              if (resultado.success) {
+                Alert.alert('✅ Éxito', 'Reporte descargado correctamente');
+              }
+            } catch (error) {
+              Alert.alert('❌ Error', error.message || 'No se pudo descargar el reporte');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const renderClase = ({ item }) => (
-    <TouchableOpacity
-      style={styles.tarjetaClase}
-      onPress={() => navigation.navigate('Eventos', { 
-        idClase: item.id_clase,
-        nombreClase: item.nombre_clase 
-      })}
-    >
-      <View style={styles.headerClase}>
-        <Text style={styles.nombreClase}>{item.nombre_clase}</Text>
-        <View style={[
-          styles.badge,
-          item.estado === 'activo' ? styles.badgeActivo : styles.badgeInactivo
-        ]}>
-          <Text style={styles.badgeTexto}>{item.estado}</Text>
-        </View>
-      </View>
-      
-      {item.descripcion && (
-        <Text style={styles.descripcion} numberOfLines={2}>
-          {item.descripcion}
-        </Text>
-      )}
-      
-      <View style={styles.infoContainer}>
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Estudiantes</Text>
-          <Text style={styles.infoValor}>
-            {item.total_estudiantes || 0}/{item.max_estudiantes || '∞'}
-          </Text>
+    <View style={styles.tarjetaClase}>
+      <TouchableOpacity
+        style={styles.contenidoClase}
+        onPress={() => navigation.navigate('Eventos', { 
+          idClase: item.id_clase,
+          nombreClase: item.nombre_clase 
+        })}
+      >
+        <View style={styles.headerClase}>
+          <Text style={styles.nombreClase}>{item.nombre_clase}</Text>
+          <View style={[
+            styles.badge,
+            (item.estado === 'activo' || item.estado === 'activa') ? styles.badgeActivo : styles.badgeInactivo
+          ]}>
+            <Text style={styles.badgeTexto}>
+              {(item.estado === 'activo' || item.estado === 'activa') ? 'Activa' : item.estado}
+            </Text>
+          </View>
         </View>
         
-        <View style={styles.infoItem}>
-          <Text style={styles.infoLabel}>Eventos</Text>
-          <Text style={styles.infoValor}>{item.total_eventos || 0}</Text>
+        {item.descripcion && (
+          <Text style={styles.descripcion} numberOfLines={2}>
+            {item.descripcion}
+          </Text>
+        )}
+        
+        <View style={styles.infoContainer}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Estudiantes</Text>
+            <Text style={styles.infoValor}>
+              {item.total_estudiantes || 0}/{item.max_estudiantes || '∞'}
+            </Text>
+          </View>
+          
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Eventos</Text>
+            <Text style={styles.infoValor}>{item.total_eventos || 0}</Text>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+
+        <View style={styles.accionContainer}>
+          <Text style={styles.textoAccion}>
+            {usuario?.rol === 'estudiante' 
+              ? '📅 Toca aquí para ver eventos y escanear QR →'
+              : '👁️ Ver detalles de la clase →'
+            }
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {(usuario?.rol === 'docente' || usuario?.rol === 'administrador') && (
+        <View style={styles.botonesInferiores}>
+          <TouchableOpacity
+            style={styles.botonDashboard}
+            onPress={() => navigation.navigate('DashboardClase', {
+              idClase: item.id_clase,
+              nombreClase: item.nombre_clase
+            })}
+          >
+            <Text style={styles.textoBotonDashboard}>📊 Dashboard</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.botonGestionarEstudiantes}
+            onPress={() => navigation.navigate('GestionEstudiantes', {
+              idClase: item.id_clase,
+              nombreClase: item.nombre_clase
+            })}
+          >
+            <Text style={styles.textoBotonGestionar}>👥 Estudiantes</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.botonExportarClase}
+            onPress={() => handleExportarReportes(item)}
+          >
+            <Text style={styles.textoBotonExportar}>📄 Exportar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
   );
 
   if (cargando) {
@@ -247,7 +329,6 @@ const styles = StyleSheet.create({
   tarjetaClase: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 20,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -256,6 +337,10 @@ const styles = StyleSheet.create({
     elevation: 3,
     borderLeftWidth: 4,
     borderLeftColor: '#6366F1',
+    overflow: 'hidden',
+  },
+  contenidoClase: {
+    padding: 20,
   },
   headerClase: {
     flexDirection: 'row',
@@ -308,6 +393,62 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#6366F1',
+  },
+  accionContainer: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  textoAccion: {
+    fontSize: 13,
+    color: '#6366F1',
+    fontWeight: '500',
+  },
+  botonesInferiores: {
+    flexDirection: 'row',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
+  },
+  botonDashboard: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#E5E7EB',
+  },
+  botonGestionarEstudiantes: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    borderRightWidth: 0.5,
+    borderRightColor: '#E5E7EB',
+  },
+  botonExportarClase: {
+    flex: 1,
+    backgroundColor: '#F3F4F6',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+  },
+  textoBotonDashboard: {
+    fontSize: 13,
+    color: '#8B5CF6',
+    fontWeight: '600',
+  },
+  textoBotonGestionar: {
+    fontSize: 13,
+    color: '#6366F1',
+    fontWeight: '600',
+  },
+  textoBotonExportar: {
+    fontSize: 13,
+    color: '#10B981',
+    fontWeight: '600',
   },
   botonVolver: {
     margin: 16,

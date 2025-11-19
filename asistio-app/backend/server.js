@@ -26,6 +26,9 @@ app.use((req, res, next) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/clases', require('./routes/clases'));
 app.use('/api/asistencia', require('./routes/asistencia'));
+app.use('/api/usuarios', require('./routes/usuarios'));
+app.use('/api/reportes', require('./routes/reportes'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Ruta de prueba
 app.get('/', (req, res) => {

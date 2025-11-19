@@ -1,4 +1,4 @@
-{
+﻿{
   "expo": {
     "name": "Asistio",
     "slug": "Asistio",
@@ -13,17 +13,29 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Esta aplicación necesita acceso a tu cámara para escanear códigos QR de asistencia."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": ["CAMERA"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permitir que $(PRODUCT_NAME) acceda a tu cámara para escanear códigos QR."
+        }
+      ]
+    ]
   }
 }

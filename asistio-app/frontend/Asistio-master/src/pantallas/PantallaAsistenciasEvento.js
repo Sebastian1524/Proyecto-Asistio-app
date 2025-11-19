@@ -7,15 +7,21 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
+  Alert,
 } from 'react-native';
+import { useAuth } from '../contexto/AuthContext';
 import { obtenerAsistenciasEvento } from '../services/asistenciaService';
+import { descargarReporteEvento } from '../services/reportesService';
 
 export default function PantallaAsistenciasEvento({ route, navigation }) {
   const { idEvento, nombreEvento } = route.params;
+  const { usuario } = useAuth();
   const [asistencias, setAsistencias] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [refrescando, setRefrescando] = useState(false);
   const [error, setError] = useState('');
+
+  const esEstudiante = usuario?.rol === 'estudiante';
 
   useEffect(() => {
     cargarAsistencias();
@@ -26,7 +32,14 @@ export default function PantallaAsistenciasEvento({ route, navigation }) {
       setCargando(true);
       setError('');
       const data = await obtenerAsistenciasEvento(idEvento);
-      setAsistencias(data);
+      
+      // Si es estudiante, filtrar solo su asistencia
+      if (esEstudiante) {
+        const miAsistencia = data.filter(a => a.id_usuario === usuario.id_usuario);
+        setAsistencias(miAsistencia);
+      } else {
+        setAsistencias(data);
+      }
     } catch (err) {
       setError(err.message || 'Error al cargar asistencias');
     } finally {
@@ -38,6 +51,33 @@ export default function PantallaAsistenciasEvento({ route, navigation }) {
   const onRefresh = () => {
     setRefrescando(true);
     cargarAsistencias();
+  };
+
+  const handleDescargarReporte = async () => {
+    try {
+      Alert.alert(
+        '📊 Exportar a Excel',
+        '¿Deseas descargar el reporte de asistencia de este evento?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Descargar',
+            onPress: async () => {
+              try {
+                const resultado = await descargarReporteEvento(idEvento, nombreEvento);
+                if (resultado.success) {
+                  Alert.alert('✅ Éxito', 'Reporte descargado correctamente');
+                }
+              } catch (error) {
+                Alert.alert('❌ Error', error.message || 'No se pudo descargar el reporte');
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      Alert.alert('❌ Error', 'No se pudo generar el reporte');
+    }
   };
 
   const formatearHora = (timestamp) => {
@@ -110,29 +150,44 @@ export default function PantallaAsistenciasEvento({ route, navigation }) {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.titulo}>{nombreEvento}</Text>
-        <Text style={styles.subtitulo}>Lista de asistencia</Text>
+        <Text style={styles.subtitulo}>
+          {esEstudiante ? 'Mi asistencia' : 'Lista de asistencia'}
+        </Text>
       </View>
 
-      <View style={styles.estadisticas}>
-        <View style={styles.estadItem}>
-          <Text style={styles.estadValor}>{totalAsistentes}</Text>
-          <Text style={styles.estadLabel}>Presentes</Text>
+      {!esEstudiante && (
+        <View style={styles.estadisticas}>
+          <View style={styles.estadItem}>
+            <Text style={styles.estadValor}>{totalAsistentes}</Text>
+            <Text style={styles.estadLabel}>Presentes</Text>
+          </View>
+          
+          <View style={styles.estadSeparador} />
+          
+          <View style={styles.estadItem}>
+            <Text style={styles.estadValor}>{asistencias.length - totalAsistentes}</Text>
+            <Text style={styles.estadLabel}>Ausentes</Text>
+          </View>
+          
+          <View style={styles.estadSeparador} />
+          
+          <View style={styles.estadItem}>
+            <Text style={[styles.estadValor, { color: '#10B981' }]}>{porcentajeAsistencia}%</Text>
+            <Text style={styles.estadLabel}>Asistencia</Text>
+          </View>
         </View>
-        
-        <View style={styles.estadSeparador} />
-        
-        <View style={styles.estadItem}>
-          <Text style={styles.estadValor}>{asistencias.length - totalAsistentes}</Text>
-          <Text style={styles.estadLabel}>Ausentes</Text>
+      )}
+
+      {!esEstudiante && asistencias.length > 0 && (
+        <View style={styles.botonesAccion}>
+          <TouchableOpacity
+            style={styles.botonExportar}
+            onPress={handleDescargarReporte}
+          >
+            <Text style={styles.botonExportarTexto}>📊 Exportar a Excel</Text>
+          </TouchableOpacity>
         </View>
-        
-        <View style={styles.estadSeparador} />
-        
-        <View style={styles.estadItem}>
-          <Text style={[styles.estadValor, { color: '#10B981' }]}>{porcentajeAsistencia}%</Text>
-          <Text style={styles.estadLabel}>Asistencia</Text>
-        </View>
-      </View>
+      )}
 
       {error ? (
         <View style={styles.centrado}>
@@ -143,7 +198,17 @@ export default function PantallaAsistenciasEvento({ route, navigation }) {
         </View>
       ) : asistencias.length === 0 ? (
         <View style={styles.centrado}>
-          <Text style={styles.textoVacio}>👥 No hay asistencias registradas</Text>
+          <Text style={styles.textoVacio}>
+            {esEstudiante 
+              ? '⚠️ No has registrado asistencia en este evento' 
+              : '👥 No hay asistencias registradas'
+            }
+          </Text>
+          {esEstudiante && (
+            <Text style={styles.mensajeAyuda}>
+              Usa el menú "Escanear QR" para registrar tu asistencia
+            </Text>
+          )}
         </View>
       ) : (
         <FlatList
@@ -354,6 +419,26 @@ const styles = StyleSheet.create({
   justificacionTexto: {
     fontSize: 13,
     color: '#78350F',
+  },
+  botonesAccion: {
+    padding: 16,
+    paddingTop: 0,
+  },
+  botonExportar: {
+    backgroundColor: '#10B981',
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  botonExportarTexto: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   botonVolver: {
     margin: 16,

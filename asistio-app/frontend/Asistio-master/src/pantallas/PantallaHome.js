@@ -69,13 +69,13 @@ export default function PantallaHome({ navigation }) {
 
           <TouchableOpacity
             style={estilos.tarjeta}
-            onPress={() => navigation.navigate('Reportes')}
+            onPress={() => navigation.navigate('DashboardEstudiante')}
           >
-            <View style={[estilos.iconoCirculo, { backgroundColor: '#FCE7F3' }]}>
+            <View style={[estilos.iconoCirculo, { backgroundColor: '#E9D5FF' }]}>
               <Text style={estilos.icono}>📊</Text>
             </View>
-            <Text style={estilos.tarjetaTitulo}>Reportes</Text>
-            <Text style={estilos.tarjetaDescripcion}>Ver asistencias</Text>
+            <Text style={estilos.tarjetaTitulo}>Dashboard</Text>
+            <Text style={estilos.tarjetaDescripcion}>Mis estadísticas</Text>
           </TouchableOpacity>
         </View>
 

@@ -16,6 +16,8 @@ import PantallaEventos from './src/pantallas/PantallaEventos';
 import PantallaEscanearQR from './src/pantallas/PantallaEscanearQR';
 import PantallaCrearClase from './src/pantallas/PantallaCrearClase';
 import PantallaCrearEvento from './src/pantallas/PantallaCrearEvento';
+import PantallaAsistenciasEvento from './src/pantallas/PantallaAsistenciasEvento';
+import PantallaReportes from './src/pantallas/PantallaReportes';
 
 const Stack = createNativeStackNavigator(); //Crea el navegador de pantallas
 
@@ -100,6 +102,20 @@ export default function App() {
             <Stack.Screen 
               name="CrearEvento" 
               component={PantallaCrearEvento}
+              options={{ 
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen 
+              name="AsistenciasEvento" 
+              component={PantallaAsistenciasEvento}
+              options={{ 
+                animation: 'slide_from_right',
+              }}
+            />
+            <Stack.Screen 
+              name="Reportes" 
+              component={PantallaReportes}
               options={{ 
                 animation: 'slide_from_right',
               }}

@@ -9,7 +9,7 @@ import {
   Alert,
   Dimensions,
 } from 'react-native';
-import { registrarAsistencia } from '../services/eventosService';
+import { registrarAsistenciaQR } from '../services/asistenciaService';
 
 const { width } = Dimensions.get('window');
 
@@ -27,12 +27,12 @@ export default function PantallaEscanearQR({ navigation }) {
     try {
       setCargando(true);
       setResultado(null);
-      const data = await registrarAsistencia(tokenQR.trim());
+      const data = await registrarAsistenciaQR(tokenQR.trim());
       
       setResultado({
         exito: true,
         mensaje: data.message || 'Asistencia registrada exitosamente',
-        evento: data.evento
+        evento: data.data?.evento
       });
       
       setTokenQR('');

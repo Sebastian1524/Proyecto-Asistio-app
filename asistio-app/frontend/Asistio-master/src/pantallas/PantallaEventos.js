@@ -109,14 +109,28 @@ export default function PantallaEventos({ navigation }) {
           </View>
         </View>
 
-        {esActivo && item.codigo_qr && (
-          <TouchableOpacity
-            style={styles.botonVerQR}
-            onPress={() => mostrarQR(item)}
-          >
-            <Text style={styles.botonVerQRTexto}>📱 Ver código QR</Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.botonesContainer}>
+          {esActivo && item.codigo_qr && (
+            <TouchableOpacity
+              style={styles.botonVerQR}
+              onPress={() => mostrarQR(item)}
+            >
+              <Text style={styles.botonVerQRTexto}>📱 Ver QR</Text>
+            </TouchableOpacity>
+          )}
+
+          {(usuario?.rol === 'docente' || usuario?.rol === 'administrador') && (
+            <TouchableOpacity
+              style={styles.botonAsistencias}
+              onPress={() => navigation.navigate('AsistenciasEvento', {
+                idEvento: item.id_evento,
+                nombreEvento: item.nombre_evento
+              })}
+            >
+              <Text style={styles.botonAsistenciasTexto}>👥 Asistencias</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   };
@@ -365,13 +379,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#374151',
   },
+  botonesContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   botonVerQR: {
+    flex: 1,
     backgroundColor: '#6366F1',
     padding: 12,
     borderRadius: 10,
     alignItems: 'center',
   },
   botonVerQRTexto: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  botonAsistencias: {
+    flex: 1,
+    backgroundColor: '#10B981',
+    padding: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  botonAsistenciasTexto: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '600',
